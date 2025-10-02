@@ -1,0 +1,67 @@
+{% extends "base.html" %} <!-- ✅ reuse shared layout -->
+{% block title %}Categories • Mofor P&L{% endblock %}
+
+{% block content %}
+  <!-- Header with Add button -->
+  <div class="flex items-center justify-between mb-4">
+    <h1 class="text-xl font-semibold">Your categories</h1>
+    <a href="{% url 'finance:category_create' %}" class="bg-indigo-600 text-white px-3 py-2 rounded hover:bg-indigo-700 text-sm">
+      + Add category
+    </a>
+  </div>
+
+  <!-- Split categories by type right inside the template -->
+  {% with incomes=categories|dictsort:"name" expenses=categories|dictsort:"name" %}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- Income -->
+      <div class="bg-white border rounded-xl">
+        <div class="px-4 py-3 border-b">
+          <h2 class="font-medium">Income</h2>
+        </div>
+        <ul class="divide-y">
+          {% for c in categories %}
+            {% if c.type == "Income" %}
+              <li class="px-4 py-3 flex items-center justify-between">
+                <div class="text-sm">
+                  <div class="font-medium">{{ c.name }}</div>
+                  <div class="text-gray-500 text-xs">Created {{ c.created_at|date:"M d, Y" }}</div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <a href="{% url 'finance:category_edit' c.pk %}" class="text-sm px-3 py-1.5 rounded bg-gray-100 hover:bg-gray-200">Edit</a>
+                  <a href="{% url 'finance:category_delete' c.pk %}" class="text-sm px-3 py-1.5 rounded bg-red-50 text-red-700 hover:bg-red-100">Delete</a>
+                </div>
+              </li>
+            {% endif %}
+          {% empty %}
+            <li class="px-4 py-3 text-sm text-gray-500">No categories yet.</li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <!-- Expense -->
+      <div class="bg-white border rounded-xl">
+        <div class="px-4 py-3 border-b">
+          <h2 class="font-medium">Expense</h2>
+        </div>
+        <ul class="divide-y">
+          {% for c in categories %}
+            {% if c.type == "Expense" %}
+              <li class="px-4 py-3 flex items-center justify-between">
+                <div class="text-sm">
+                  <div class="font-medium">{{ c.name }}</div>
+                  <div class="text-gray-500 text-xs">Created {{ c.created_at|date:"M d, Y" }}</div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <a href="{% url 'finance:category_edit' c.pk %}" class="text-sm px-3 py-1.5 rounded bg-gray-100 hover:bg-gray-200">Edit</a>
+                  <a href="{% url 'finance:category_delete' c.pk %}" class="text-sm px-3 py-1.5 rounded bg-red-50 text-red-700 hover:bg-red-100">Delete</a>
+                </div>
+              </li>
+            {% endif %}
+          {% empty %}
+            <li class="px-4 py-3 text-sm text-gray-500">No categories yet.</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  {% endwith %}
+{% endblock %}

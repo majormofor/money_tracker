@@ -1,0 +1,32 @@
+{% extends "base.html" %} <!-- ✅ reuse base -->
+{% block title %}Category • Mofor P&L{% endblock %}
+
+{% block content %}
+  <div class="max-w-md mx-auto bg-white border rounded-xl p-6">
+    <h1 class="text-lg font-semibold">
+      {% if object %}Edit category{% else %}Add category{% endif %}
+    </h1>
+
+    <form method="post" class="mt-4 space-y-3">
+      {% csrf_token %}
+      {{ form.non_field_errors }}
+
+      <div>
+        {{ form.name.label_tag }}
+        {{ form.name }}
+        {% for err in form.name.errors %}<p class="text-sm text-red-600 mt-1">{{ err }}</p>{% endfor %}
+      </div>
+
+      <div>
+        {{ form.type.label_tag }}
+        {{ form.type }}
+        {% for err in form.type.errors %}<p class="text-sm text-red-600 mt-1">{{ err }}</p>{% endfor %}
+      </div>
+
+      <div class="flex items-center justify-end gap-2">
+        <a href="{% url 'finance:category_list' %}" class="px-3 py-2 rounded bg-gray-100 hover:bg-gray-200 text-sm">Cancel</a>
+        <button type="submit">Save</button>
+      </div>
+    </form>
+  </div>
+{% endblock %}

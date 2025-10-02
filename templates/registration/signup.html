@@ -1,0 +1,56 @@
+{# templates/registration/signup.html #}
+{% extends "base.html" %}
+{% block title %}Sign up • Mofor P&L{% endblock %}
+
+{% block content %}
+  <div class="max-w-md mx-auto bg-white border rounded-xl p-6">
+    <h1 class="text-lg font-semibold">Create your account</h1>
+
+    <form method="post" class="mt-4 space-y-3">
+      {% csrf_token %}
+      {{ form.non_field_errors }}
+
+      <!-- Username -->
+      <div>
+        {{ form.username.label_tag }} {{ form.username }}
+        {% for e in form.username.errors %}<p class="text-sm text-red-600 mt-1">{{ e }}</p>{% endfor %}
+      </div>
+
+      <!-- Email (optional) -->
+      <div>
+        {{ form.email.label_tag }} {{ form.email }}
+        {% for e in form.email.errors %}<p class="text-sm text-red-600 mt-1">{{ e }}</p>{% endfor %}
+      </div>
+
+      <!-- Currency (GUARDED so template won’t crash during debugging) -->
+      {% if form.currency %}
+      <div>
+        {{ form.currency.label_tag }} {{ form.currency }}
+        <p class="text-xs text-gray-500 mt-1">This currency will be used to display totals and charts.</p>
+        {% for e in form.currency.errors %}<p class="text-sm text-red-600 mt-1">{{ e }}</p>{% endfor %}
+      </div>
+      {% else %}
+      <!-- Debug helper if you ever see this: your view isn't using SignupForm -->
+      <div class="text-sm text-red-600">
+        Currency field missing — is the view using <code>SignupForm</code>?
+      </div>
+      {% endif %}
+
+      <!-- Passwords -->
+      <div>
+        {{ form.password1.label_tag }} {{ form.password1 }}
+        {% for e in form.password1.errors %}<p class="text-sm text-red-600 mt-1">{{ e }}</p>{% endfor %}
+      </div>
+      <div>
+        {{ form.password2.label_tag }} {{ form.password2 }}
+        {% for e in form.password2.errors %}<p class="text-sm text-red-600 mt-1">{{ e }}</p>{% endfor %}
+      </div>
+
+      <!-- Actions -->
+      <div class="flex items-center justify-end gap-2">
+        <a href="{% url 'accounts:login' %}" class="px-3 py-2 rounded bg-gray-100 hover:bg-gray-200 text-sm">Have an account? Log in</a>
+        <button type="submit">Sign up</button>
+      </div>
+    </form>
+  </div>
+{% endblock %}

@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% block title %}Home • Mofor P&L{% endblock %}
+
+{% block content %}
+  {# ---- Hero greeting ---- #}
+  <section class="mb-6">
+    <h1 class="text-2xl sm:text-3xl font-semibold tracking-tight">
+      Welcome, {{ request.user.username }}
+    </h1>
+    <p class="text-gray-600 mt-1">
+      Start with your dashboard or jump straight into recording transactions.
+    </p>
+  </section>
+
+  {# ---- Primary actions: two big hero cards ---- #}
+  <section class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+    {# DASHBOARD — clean, obviously clickable card (entire card is a link) #}
+    <a
+      href="{% url 'finance:dashboard' %}"
+      class="group block rounded-2xl border bg-white p-6 sm:p-8 hover:shadow-md hover:border-indigo-300 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
+      aria-label="Open Dashboard"
+    >
+      <div class="flex items-start gap-4">
+        <div class="h-12 w-12 rounded-xl bg-indigo-50 flex items-center justify-center shrink-0">
+          <span class="text-indigo-600 text-2xl">📊</span>
+        </div>
+        <div class="flex-1">
+          <h2 class="text-lg sm:text-xl font-semibold text-gray-900">Dashboard</h2>
+          <p class="mt-2 text-gray-600 text-sm sm:text-base">
+            KPIs at a glance, profit trend, and expense breakdown.
+          </p>
+          <div class="mt-4">
+            <span class="inline-flex items-center rounded-lg bg-indigo-600 text-white px-4 py-2 text-sm font-medium group-hover:bg-indigo-700">
+              Open Dashboard
+              <svg class="ml-2 h-4 w-4 translate-x-0 transition-transform group-hover:translate-x-1" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l5 5a1 1 0 010 1.414l-5 5A1 1 0 0110 14.586l3.293-3.293H4a1 1 0 110-2h9.293L10 4.707a1 1 0 01.293-1.414z" clip-rule="evenodd" />
+              </svg>
+            </span>
+          </div>
+        </div>
+      </div>
+    </a>
+
+    {# TRANSACTIONS — card with two clear CTAs (add + view all) #}
+    <div class="rounded-2xl border bg-white p-6 sm:p-8 hover:shadow-md hover:border-emerald-300 transition">
+      <div class="flex items-start gap-4">
+        <div class="h-12 w-12 rounded-xl bg-emerald-50 flex items-center justify-center shrink-0">
+          <span class="text-emerald-600 text-2xl">🧾</span>
+        </div>
+        <div class="flex-1">
+          <h2 class="text-lg sm:text-xl font-semibold text-gray-900">Transactions</h2>
+          <p class="mt-2 text-gray-600 text-sm sm:text-base">
+            Add income &amp; expenses. Filter by date, type, and category.
+          </p>
+          <div class="mt-4 flex flex-wrap gap-2">
+            <a href="{% url 'finance:transaction_create' %}" class="inline-flex items-center rounded-lg bg-emerald-600 text-white px-4 py-2 text-sm font-medium hover:bg-emerald-700">
+              + Add Transaction
+            </a>
+            <a href="{% url 'finance:transaction_list' %}" class="inline-flex items-center rounded-lg bg-emerald-50 text-emerald-700 px-4 py-2 text-sm font-medium hover:bg-emerald-100">
+              View All
+              <svg class="ml-2 h-4 w-4 translate-x-0 transition-transform group-hover:translate-x-1" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l5 5a1 1 0 010 1.414l-5 5A1 1 0 0110 14.586l3.293-3.293H4a1 1 0 110-2h9.293L10 4.707a1 1 0 01.293-1.414z" clip-rule="evenodd" />
+              </svg>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {# ---- Secondary actions ---- #}
+  <section class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <a
+      href="{% url 'finance:category_list' %}"
+      class="group block rounded-2xl border bg-white p-5 hover:shadow-md hover:border-indigo-300 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
+      aria-label="Open Categories"
+    >
+      <div class="flex items-center gap-3">
+        <div class="h-10 w-10 rounded-full bg-indigo-50 flex items-center justify-center">
+          <span class="text-indigo-600 text-lg">🗂️</span>
+        </div>
+        <h3 class="text-base font-semibold">Categories</h3>
+      </div>
+      <p class="text-sm text-gray-600 mt-3">
+        Create and manage Income/Expense buckets like Salary, Sales, Rent, Utilities.
+      </p>
+      <div class="mt-4 inline-flex items-center text-indigo-600 text-sm font-medium">
+        Open
+        <svg class="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l5 5a1 1 0 010 1.414l-5 5A1 1 0 0110 14.586l3.293-3.293H4a1 1 0 110-2h9.293L10 4.707a1 1 0 01.293-1.414z" clip-rule="evenodd" />
+        </svg>
+      </div>
+    </a>
+
+    <a
+      href="{% url 'finance:pl_report' %}"
+      class="group block rounded-2xl border bg-white p-5 hover:shadow-md hover:border-indigo-300 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
+      aria-label="Open Profit and Loss Report"
+    >
+      <div class="flex items-center gap-3">
+        <div class="h-10 w-10 rounded-full bg-indigo-50 flex items-center justify-center">
+          <span class="text-indigo-600 text-lg">📑</span>
+        </div>
+        <h3 class="text-base font-semibold">Reports (P&amp;L)</h3>
+      </div>
+      <p class="text-sm text-gray-600 mt-3">
+        Totals and category breakdown over a date range. Export CSV for Excel/Sheets.
+      </p>
+      <div class="mt-4 inline-flex items-center text-indigo-600 text-sm font-medium">
+        Open
+        <svg class="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l5 5a1 1 0 010 1.414l-5 5A1 1 0 0110 14.586l3.293-3.293H4a1 1 0 110-2h9.293L10 4.707a1 1 0 01.293-1.414z" clip-rule="evenodd" />
+        </svg>
+      </div>
+    </a>
+  </section>
+
+  {# ---- Hint ---- #}
+  <p class="mt-6 text-xs text-gray-500">
+    Tip: Add a few categories first (Salary, Sales, Rent, Utilities), then record your first transactions.
+  </p>
+{% endblock %}

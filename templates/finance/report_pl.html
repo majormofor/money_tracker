@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}P&L Report • Mofor P&L{% endblock %}
+
+{% block content %}
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-4">
+    <h1 class="text-xl font-semibold">Profit &amp; Loss Report</h1>
+    <a href="{% url 'finance:dashboard' %}" class="text-sm bg-white border px-3 py-2 rounded hover:bg-gray-50">Back to Dashboard</a>
+  </div>
+
+  <!-- Filters -->
+  <form method="get" class="bg-white border rounded-xl p-4 mb-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
+    <div>
+      <label class="block text-sm font-medium text-gray-700">From</label>
+      <input type="date" name="date_from" value="{{ date_from }}" class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-gray-700">To</label>
+      <input type="date" name="date_to" value="{{ date_to }}" class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
+    </div>
+    <div class="flex items-end gap-2">
+      <a href="{% url 'finance:pl_report' %}" class="px-3 py-2 rounded bg-gray-100 hover:bg-gray-200 text-sm">Clear</a>
+      <button type="submit">Apply</button>
+      <!-- CSV export keeps the same date filters -->
+      <a
+        href="{% url 'finance:pl_export_csv' %}?date_from={{ date_from }}&date_to={{ date_to }}"
+        class="px-3 py-2 rounded bg-white border hover:bg-gray-50 text-sm"
+      >Export CSV</a>
+    </div>
+  </form>
+
+  <!-- KPI totals -->
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+    <div class="bg-white border rounded-xl p-4">
+      <div class="text-xs text-gray-500">Total Revenue</div>
+      <div class="text-xl font-semibold text-emerald-700 mt-1">{{ currency }}{{ income_total|floatformat:2 }}</div>
+    </div>
+    <div class="bg-white border rounded-xl p-4">
+      <div class="text-xs text-gray-500">Total Expenses</div>
+      <div class="text-xl font-semibold text-rose-700 mt-1">{{ currency }}{{ expense_total|floatformat:2 }}</div>
+    </div>
+    <div class="bg-white border rounded-xl p-4">
+      <div class="text-xs text-gray-500">Net</div>
+      <div class="text-xl font-semibold mt-1 {% if net_total >= 0 %}text-emerald-700{% else %}text-rose-700{% endif %}">
+        {{ currency }}{{ net_total|floatformat:2 }}
+      </div>
+    </div>
+  </div>
+
+  <!-- Breakdown: Income categories -->
+  <div class="bg-white border rounded-xl overflow-hidden mb-6">
+    <div class="px-4 py-3 border-b font-medium">Income by Category</div>
+    <table class="min-w-full text-sm">
+      <thead class="bg-gray-50 text-gray-600">
+        <tr>
+          <th class="text-left px-4 py-3">Category</th>
+          <th class="text-right px-4 py-3">Total</th>
+        </tr>
+      </thead>
+{# Income by Category #}
+<tbody class="divide-y">
+  {% for row in income_by_cat %}
+    <tr>
+      <td class="px-4 py-3">{{ row.category__name|default:"Uncategorised" }}</td>
+      <td class="px-4 py-3 text-right">{{ currency }}{{ row.total|floatformat:2 }}</td>
+    </tr>
+  {% empty %}
+    <tr><td colspan="2" class="px-4 py-6 text-center text-gray-500">No income in this range.</td></tr>
+  {% endfor %}
+</tbody>
+    </table>
+  </div>
+
+  <!-- Breakdown: Expense categories -->
+  <div class="bg-white border rounded-xl overflow-hidden">
+    <div class="px-4 py-3 border-b font-medium">Expenses by Category</div>
+    <table class="min-w-full text-sm">
+      <thead class="bg-gray-50 text-gray-600">
+        <tr>
+          <th class="text-left px-4 py-3">Category</th>
+          <th class="text-right px-4 py-3">Total</th>
+        </tr>
+      </thead>
+      {# Expenses by Category #}
+<tbody class="divide-y">
+  {% for row in expense_by_cat %}
+    <tr>
+      <td class="px-4 py-3">{{ row.category__name|default:"Uncategorised" }}</td>
+      <td class="px-4 py-3 text-right">{{ currency }}{{ row.total|floatformat:2 }}</td>
+    </tr>
+  {% empty %}
+    <tr><td colspan="2" class="px-4 py-6 text-center text-gray-500">No expenses in this range.</td></tr>
+  {% endfor %}
+</tbody>
+
+    </table>
+  </div>
+{% endblock %}

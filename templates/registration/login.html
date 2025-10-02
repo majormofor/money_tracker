@@ -1,0 +1,42 @@
+<!-- templates/registration/login.html -->
+{% extends "base.html" %} <!-- Reuse base -->
+{% block title %}Login • Mofor P&L{% endblock %} <!-- Title -->
+
+{% block content %}
+  <!-- Card -->
+  <div class="max-w-md mx-auto bg-white rounded-xl border p-6"> <!-- Centered card -->
+    <h1 class="text-lg font-semibold">Login</h1> <!-- Heading -->
+    <p class="text-sm text-gray-600 mt-1">
+      New here?
+      <a href="{% url 'accounts:signup' %}" class="text-indigo-600 hover:underline">Create an account</a> <!-- To signup -->
+    </p>
+
+    <!-- Login form -->
+    <form method="post" class="mt-4 space-y-3"> <!-- POST form -->
+      {% csrf_token %} <!-- CSRF token -->
+      {{ form.non_field_errors }} <!-- Form-wide errors -->
+
+      <!-- Username field -->
+      <div>
+        {{ form.username.label_tag }} <!-- Label -->
+        {{ form.username }} <!-- Input -->
+        {% for err in form.username.errors %}<p class="text-sm text-red-600 mt-1">{{ err }}</p>{% endfor %} <!-- Errors -->
+      </div>
+
+      <!-- Password field -->
+      <div>
+        {{ form.password.label_tag }} <!-- Label -->
+        {{ form.password }} <!-- Input -->
+        {% for err in form.password.errors %}<p class="text-sm text-red-600 mt-1">{{ err }}</p>{% endfor %} <!-- Errors -->
+      </div>
+
+      <!-- Submit -->
+      <button type="submit" class="w-full">Login</button> <!-- Full-width button -->
+
+      <!-- Password reset link -->
+      <p class="text-sm text-gray-600 mt-2">
+        <a href="{% url 'accounts:password_reset' %}" class="text-indigo-600 hover:underline">Forgot password?</a> <!-- Reset link -->
+      </p>
+    </form>
+  </div>
+{% endblock %}

@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+{% block title %}{% if object %}Edit{% else %}Add{% endif %} Transaction • Mofor P&L{% endblock %}
+
+{% block content %}
+  <div class="max-w-lg mx-auto bg-white border rounded-xl p-6">
+    <h1 class="text-lg font-semibold">{% if object %}Edit{% else %}Add{% endif %} transaction</h1>
+
+    <form method="post" class="mt-4 space-y-3" id="tx-form">
+      {% csrf_token %}
+      {{ form.non_field_errors }}
+
+      <!-- Title -->
+      <div>
+        {{ form.title.label_tag }}
+        {{ form.title }}
+        {% for err in form.title.errors %}<p class="text-sm text-red-600 mt-1">{{ err }}</p>{% endfor %}
+      </div>
+
+      <!-- Amount -->
+      <div>
+        {{ form.amount.label_tag }}
+        {{ form.amount }}
+        {% for err in form.amount.errors %}<p class="text-sm text-red-600 mt-1">{{ err }}</p>{% endfor %}
+      </div>
+
+      <!-- Type -->
+      <div>
+        {{ form.transaction_type.label_tag }}
+        {{ form.transaction_type }}
+        {% for err in form.transaction_type.errors %}<p class="text-sm text-red-600 mt-1">{{ err }}</p>{% endfor %}
+        <p class="text-xs text-gray-500 mt-1">Choose the type first — category options depend on this.</p>
+      </div>
+
+      <!-- Category -->
+      <div>
+        {{ form.category.label_tag }}
+        {{ form.category }}
+        {% for err in form.category.errors %}<p class="text-sm text-red-600 mt-1">{{ err }}</p>{% endfor %}
+        <p class="text-xs text-gray-500 mt-1">Pick an existing category, or choose “Other…” to add a new one.</p>
+      </div>
+
+      <!-- New category (hidden until “Other…” is chosen) -->
+      <div id="new-cat-wrap" class="{% if form.new_category.value %}{% else %}hidden{% endif %}">
+        {{ form.new_category.label_tag }}
+        {{ form.new_category }}
+        {% for err in form.new_category.errors %}<p class="text-sm text-red-600 mt-1">{{ err }}</p>{% endfor %}
+        <p class="text-xs text-gray-500 mt-1">Type the new category name (required when “Other…” is selected).</p>
+      </div>
+
+      <!-- Date -->
+      <div>
+        {{ form.date.label_tag }}
+        {{ form.date }}
+        {% for err in form.date.errors %}<p class="text-sm text-red-600 mt-1">{{ err }}</p>{% endfor %}
+      </div>
+
+      <!-- Notes -->
+      <div>
+        {{ form.notes.label_tag }}
+        {{ form.notes }}
+        {% for err in form.notes.errors %}<p class="text-sm text-red-600 mt-1">{{ err }}</p>{% endfor %}
+      </div>
+
+      <!-- Actions -->
+      <div class="flex items-center justify-end gap-2">
+        <a href="{% url 'finance:transaction_list' %}" class="px-3 py-2 rounded bg-gray-100 hover:bg-gray-200 text-sm">Cancel</a>
+        <button type="submit">Save</button>
+      </div>
+    </form>
+  </div>
+
+  {# === Server-provided lists for client-side filtering === #}
+  {{ income_categories|json_script:"income-cats-data" }}
+  {{ expense_categories|json_script:"expense-cats-data" }}
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      // 🔌 Hook up form and fields
+      const formEl      = document.getElementById('tx-form');                            // the <form>
+      const typeSelect  = formEl.querySelector('select[name="transaction_type"]');       // Income/Expense
+      const catSelect   = formEl.querySelector('select[name="category"]');               // Category dropdown
+      const newCatWrap  = document.getElementById('new-cat-wrap');                       // wrapper for new category input
+      const newCatInput = formEl.querySelector('input[name="new_category"]');            // text input for new category
+
+      if (!typeSelect || !catSelect || !newCatWrap || !newCatInput) return;              // guard if template changed
+
+      // 📦 Load server-embedded category arrays (already filtered by user)
+      const incomeCats  = JSON.parse(document.getElementById('income-cats-data').textContent);
+      const expenseCats = JSON.parse(document.getElementById('expense-cats-data').textContent);
+
+      // 🏷️ Sentinel value for “Other…”
+      const OTHER_VALUE = '_other';
+
+      // 🧱 Rebuild the category <select> to show only categories of the chosen type
+      function rebuildCategoryOptions(txType, preselectId = null) {
+        const list = txType === 'Income' ? incomeCats : expenseCats;  // choose which list to show
+
+        // Clear current options
+        catSelect.innerHTML = '';
+
+        // Add placeholder
+        catSelect.add(new Option('Choose existing…', ''));
+
+        // Add options for this type
+        list.forEach(c => catSelect.add(new Option(c.name, String(c.id))));
+
+        // Add the “Other…” choice (NOTE: value is the sentinel)
+        catSelect.add(new Option('Other…', OTHER_VALUE));
+
+        // Preselect (edit mode)
+        if (preselectId) {
+          const found = Array.from(catSelect.options).find(o => o.value === String(preselectId));
+          if (found) found.selected = true;
+        }
+      }
+
+      // 🎚️ Show/hide and require/unrequire the new-category textbox
+      function toggleNewCategory(show) {
+        if (show) {
+          newCatWrap.classList.remove('hidden');
+          newCatInput.setAttribute('required', 'required');
+          newCatInput.focus();
+        } else {
+          newCatWrap.classList.add('hidden');
+          newCatInput.removeAttribute('required');
+          // newCatInput.value = ''; // optional: clear if you want
+        }
+      }
+
+      // 🔁 When the category changes…
+      catSelect.addEventListener('change', function () {
+        if (catSelect.value === OTHER_VALUE) {
+          // ✅ Switch to "Other…" mode: show input AND make sure we DO NOT submit the sentinel
+          toggleNewCategory(true);
+          catSelect.value = '';  // <<< IMPORTANT: prevent submitting '_other'
+        } else {
+          toggleNewCategory(false);
+        }
+      });
+
+      // 🔁 When the type changes, rebuild category options and hide "new category"
+      typeSelect.addEventListener('change', function () {
+        rebuildCategoryOptions(typeSelect.value, null);
+        toggleNewCategory(false);
+      });
+
+      // 🧪 Initial build on page load (for add & edit forms)
+      const initialType = typeSelect.value || 'Expense';                       // default to Expense
+      const initialSelectedId = "{{ object.category.id|default:'' }}";         // preselect on edit
+      rebuildCategoryOptions(initialType, initialSelectedId);
+
+      // 🛡️ Final safeguard: right before submit, ensure we never send the sentinel
+      formEl.addEventListener('submit', function () {
+        if (catSelect.value === OTHER_VALUE) {
+          catSelect.value = '';  // <<< IMPORTANT: blank means "creating a new category"
+        }
+      });
+
+      // ♻️ If the form re-rendered with errors and 'new_category' has text, keep it visible
+      if (newCatInput.value && !catSelect.value) {
+        toggleNewCategory(true);
+      }
+    });
+  </script>
+{% endblock %}

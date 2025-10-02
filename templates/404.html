@@ -1,0 +1,61 @@
+{% extends "base.html" %} <!-- ✅ Reuse the global layout (nav, footer, Tailwind, messages) -->
+
+{% block title %}404 • Mofor P&L{% endblock %} <!-- ✅ Page title shown in the browser tab -->
+
+{% block content %}
+  <!-- ✅ Outer wrapper to center the card nicely on the page -->
+  <section class="max-w-lg mx-auto mt-10">
+    <!-- ✅ The message card -->
+    <div class="bg-white border rounded-2xl p-8 text-center shadow-sm">
+      <!-- ✅ Big expressive emoji to set the mood -->
+      <div class="text-5xl mb-3" aria-hidden="true">🛰️</div>
+
+      <!-- ✅ Loud headline -->
+      <h1 class="text-2xl sm:text-3xl font-semibold tracking-tight">
+        Ohh nooo — This page doesn’t exist
+      </h1>
+
+      <!-- ✅ Small helpful context (what path failed) -->
+      <p class="text-gray-600 text-sm mt-2">
+        We couldn’t find <code class="font-mono text-gray-800">{{ request.path }}</code>.
+      </p>
+
+      <!-- ✅ Gentle guidance -->
+      <p class="text-gray-600 text-sm mt-1">
+        The link may be broken, or the page might have moved.
+      </p>
+
+      <!-- ✅ Primary actions -->
+      <div class="mt-6 flex flex-wrap items-center justify-center gap-2">
+        <!-- 🔙 Go back (client-side history) -->
+        <a href="#" onclick="history.back(); return false;"
+           class="inline-flex items-center rounded-lg bg-gray-100 hover:bg-gray-200 px-4 py-2 text-sm">
+          Go back
+        </a>
+
+        <!-- 🏠 Always available: Home -->
+        <a href="{% url 'accounts:home' %}"
+           class="inline-flex items-center rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 px-4 py-2 text-sm">
+          Go to Home
+        </a>
+
+        <!-- 🔗 If logged in, offer direct links to key areas -->
+        {% if request.user.is_authenticated %}
+          <a href="{% url 'finance:dashboard' %}"
+             class="inline-flex items-center rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 px-4 py-2 text-sm">
+            Open Dashboard
+          </a>
+          <a href="{% url 'finance:transaction_list' %}"
+             class="inline-flex items-center rounded-lg bg-white border hover:bg-gray-50 px-4 py-2 text-sm">
+            View Transactions
+          </a>
+        {% endif %}
+      </div>
+
+      <!-- ✅ Tiny note -->
+      <p class="text-xs text-gray-500 mt-6">
+        If you think this is a mistake, please double-check the URL or try again later.
+      </p>
+    </div>
+  </section>
+{% endblock %}

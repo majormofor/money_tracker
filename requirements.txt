@@ -1,0 +1,6 @@
+Django==5.2.6           # web framework
+crispy-bootstrap5==2025.6
+gunicorn==23.0.0
+mysqlclient==2.2.7
+python-dotenv==1.1.1
+dj-database-url==3.0.1 

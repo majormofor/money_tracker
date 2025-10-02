@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+{% block title %}Dashboard • Mofor P&L{% endblock %}
+
+{% block content %}
+  <!-- 🔎 Filters: date range + granularity (weekly/monthly only) -->
+  <form method="get" class="mb-4 flex flex-wrap items-end gap-3">
+    <div>
+      <label class="block text-sm font-medium text-gray-700">From</label>
+      <input type="date" name="date_from" value="{{ date_from }}">  <!-- prefilled by view -->
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-gray-700">To</label>
+      <input type="date" name="date_to" value="{{ date_to }}">      <!-- prefilled by view -->
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-gray-700">Granularity</label>
+      <select name="bucket">
+        <!-- ✅ Weekly is default; no Daily -->
+        <option value="weekly"  {% if bucket == 'weekly' %}selected{% endif %}>Weekly</option>
+        <option value="monthly" {% if bucket == 'monthly' %}selected{% endif %}>Monthly</option>
+      </select>
+    </div>
+    <div class="mt-6">
+      <button type="submit">Apply</button>  <!-- submits as GET so URL keeps filters -->
+    </div>
+  </form>
+
+  <!-- 🔢 KPIs -->
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+    <div class="rounded-xl border bg-white p-4">
+      <div class="text-xs uppercase text-gray-500">Total Income</div>
+      <div class="text-xl font-semibold">{{ currency }}{{ kpi_income }}</div>
+    </div>
+    <div class="rounded-xl border bg-white p-4">
+      <div class="text-xs uppercase text-gray-500">Total Expense</div>
+      <div class="text-xl font-semibold">{{ currency }}{{ kpi_expense }}</div> <!-- 👈 we'll also show this in the donut center -->
+    </div>
+    <div class="rounded-xl border bg-white p-4">
+      <div class="text-xs uppercase text-gray-500">Net</div>
+      <div class="text-xl font-semibold">{{ currency }}{{ kpi_net }}</div>
+    </div>
+  </div>
+
+  <!-- 📈 Charts -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Line: Income / Expense / Net over time -->
+    <div class="rounded-xl border bg-white p-4">
+      <div class="text-sm font-medium mb-2">
+        {% if bucket == 'weekly' %}Profit over time (weekly){% else %}Profit over time (monthly){% endif %}
+      </div>
+      <div class="h-64">
+        <canvas id="lineChart"></canvas>  <!-- Chart.js target -->
+      </div>
+    </div>
+
+    <!-- Donut: Expense by category (with % labels + center total) -->
+    <div class="rounded-xl border bg-white p-4">
+      <div class="text-sm font-medium mb-2">Expense by category</div>
+      <div class="relative h-64">
+        <!-- 🕳️ Donut -->
+        <canvas id="pieChart"></canvas>
+
+        <!-- (Optional) If you ever want HTML center text instead of canvas drawing,
+             you can overlay a div here. We’ll draw on canvas for crispness. -->
+      </div>
+    </div>
+  </div>
+
+  {# 📦 Embed arrays from the view (safe JSON → JS) #}
+  {{ line_labels|json_script:"line-labels-data" }}
+  {{ line_income|json_script:"line-income-data" }}
+  {{ line_expense|json_script:"line-expense-data" }}
+  {{ line_net|json_script:"line-net-data" }}
+  {{ pie_labels|json_script:"pie-labels-data" }}
+  {{ pie_values|json_script:"pie-values-data" }}
+
+  <!-- 📚 Chart.js + DataLabels plugin (for % labels on slices) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+
+  <script>
+    // ─────────────────────────────────────────────────────────
+    // 🔐 Load embedded data
+    // ─────────────────────────────────────────────────────────
+    const LINE_LABELS  = JSON.parse(document.getElementById('line-labels-data').textContent || '[]');
+    const LINE_INCOME  = JSON.parse(document.getElementById('line-income-data').textContent || '[]');
+    const LINE_EXPENSE = JSON.parse(document.getElementById('line-expense-data').textContent || '[]');
+    const LINE_NET     = JSON.parse(document.getElementById('line-net-data').textContent || '[]');
+
+    const PIE_LABELS   = JSON.parse(document.getElementById('pie-labels-data').textContent || '[]');
+    const PIE_VALUES   = JSON.parse(document.getElementById('pie-values-data').textContent || '[]');
+
+    // 💷 Currency symbol & total expense for center text
+    const CURRENCY = "{{ currency }}";                          // e.g., "£"
+    const TOTAL_EXPENSE_TEXT = `${CURRENCY}{{ kpi_expense }}`;  // e.g., "£1234.00"
+
+    // ─────────────────────────────────────────────────────────
+    // 📈 Line chart (category x-axis to keep labels discrete)
+    // ─────────────────────────────────────────────────────────
+    const lineCtx = document.getElementById('lineChart').getContext('2d');
+    new Chart(lineCtx, {
+      type: 'line',
+      data: {
+        labels: LINE_LABELS,  // e.g., ["2025-W38","2025-W39","2025-W40"] or ["2025-09","2025-10"]
+        datasets: [
+          { label: 'Income',  data: LINE_INCOME,  fill: false, tension: 0.3 },
+          { label: 'Expense', data: LINE_EXPENSE, fill: false, tension: 0.3 },
+          { label: 'Net',     data: LINE_NET,     fill: false, tension: 0.3 }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,        // use the h-64 height
+        scales: {
+          x: { type: 'category' },         // ✅ prevents collapsing to a single tick
+          y: { beginAtZero: true }
+        },
+        plugins: {
+          legend:  { position: 'bottom' },
+          tooltip: { mode: 'index', intersect: false }
+        },
+        interaction: { mode: 'index', intersect: false }
+      }
+    });
+
+    // ─────────────────────────────────────────────────────────
+    // 🍩 Donut chart (with % labels + center total)
+    // ─────────────────────────────────────────────────────────
+
+    // 🧮 Helper to format numbers as 2dp with thousands separators
+    function fmt2(n) {
+      return (n ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    // 🧮 Sum helper
+    function sum(arr) {
+      return (arr || []).reduce((a, b) => a + (b || 0), 0);
+    }
+
+    // 🖍️ Plugin: draw center text (the total) inside the donut
+    const CenterText = {
+      id: 'centerText',
+      afterDraw(chart, args, pluginOptions) {
+        const { ctx, chartArea: { left, right, top, bottom } } = chart;
+        const text = pluginOptions?.text || '';
+        if (!text) return;
+
+        ctx.save();
+        // 🎨 Style for center text (semi-bold, readable)
+        ctx.font = (pluginOptions.font || '600 14px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial');
+        ctx.fillStyle = (pluginOptions.color || '#111827'); // Tailwind gray-900
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        // 🧭 Center of the plot area
+        const x = (left + right) / 2;
+        const y = (top + bottom) / 2;
+        ctx.fillText(text, x, y);
+        ctx.restore();
+      }
+    };
+
+    // 🧮 Total for % calculations (guard against divide-by-zero)
+    const PIE_TOTAL = sum(PIE_VALUES);
+
+    // 🧩 Build the donut
+    const pieCtx = document.getElementById('pieChart').getContext('2d');
+    new Chart(pieCtx, {
+      type: 'doughnut',
+      data: {
+        labels: PIE_LABELS,                         // category names
+        datasets: [{
+          data: PIE_VALUES                          // totals per category
+          // 🎨 (optional) You can define custom colors here if you want consistent palette.
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '60%',                               // 🕳️ makes room for center total
+        plugins: {
+          legend: { position: 'bottom' },            // legend below
+          // 🗯️ Tooltip shows "Name: £value (xx.x%)"
+          tooltip: {
+            callbacks: {
+              label: (ctx) => {
+                const label = ctx.label || '';
+                const v = ctx.parsed || 0;
+                const pct = PIE_TOTAL ? (v / PIE_TOTAL * 100) : 0;
+                return `${label}: ${CURRENCY}${fmt2(v)} (${pct.toFixed(1)}%)`;
+              }
+            }
+          },
+          // 🏷️ Data labels on slices (percent only). Tiny slices hide labels.
+          datalabels: {
+            color: '#111',                           // dark text for readability
+            font: { weight: '600', size: 11 },
+            formatter: (v, ctx) => {
+              if (!PIE_TOTAL) return '';             // nothing to show
+              const pct = v / PIE_TOTAL * 100;
+              return pct >= 3 ? `${pct.toFixed(0)}%` : ''; // hide labels <3% to avoid clutter
+            },
+            // Position labels just outside or inside — default inside is fine for donut
+            clamp: true,
+          },
+          // 🧿 Our center text plugin: show the total inside the ring
+          centerText: {
+            text: `Total ${TOTAL_EXPENSE_TEXT}`      // e.g., "Total £1,234.00"
+          }
+        }
+      },
+      // 🧩 Register the plugins for this chart
+      plugins: [ChartDataLabels, CenterText]
+    });
+  </script>
+{% endblock %}
