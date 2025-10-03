@@ -7,6 +7,8 @@ from django.contrib.auth.decorators import login_required       # ✅ protect vi
 from django.views.decorators.http import require_POST           # ✅ POST-only decorator
 from django.contrib import messages                             # ✅ flash messages
 from .forms import SignupForm                                   # ✅ our signup form
+from .models import UserProfile   
+from .forms import SignupForm, CurrencyForm   # ← make sure CurrencyForm is imported
 
   # ... your existing code ...
 def signup(request):
@@ -46,3 +48,26 @@ def logout_view(request):
     logout(request)                            # ✅ clear session
     messages.success(request, "You have been logged out.")  # ✅ feedback
     return redirect("accounts:login")          # ✅ back to login page
+
+# currency change/edit
+
+@login_required                                                # ← force login to access this page
+def currency_settings(request):
+    """Let a logged-in user change their preferred currency in one field."""
+    # 🧾 get or create a profile for this user (safety if signal didn’t run)
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+
+    if request.method == "POST":
+        # 📝 bind POST data to the form, editing THIS user's profile
+        form = CurrencyForm(request.POST, instance=profile)
+        if form.is_valid():
+            form.save()                                        # 💾 write the currency to DB
+            messages.success(request, "Currency updated.")     # ✅ nice feedback
+            # 🔁 send them back to Transactions (or wherever you prefer)
+            return redirect("finance:transaction_list")
+    else:
+        # 📃 initial GET: show the form with the current value pre-filled
+        form = CurrencyForm(instance=profile)
+
+    # 🎨 render the small settings page
+    return render(request, "accounts/currency_settings.html", {"form": form})

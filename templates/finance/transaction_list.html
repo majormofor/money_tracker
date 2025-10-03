@@ -5,9 +5,16 @@
   <!-- Header + Add button -->
   <div class="flex items-center justify-between mb-4">
     <h1 class="text-xl font-semibold">Transactions</h1>
+
+     <a href="{% url 'accounts:currency_settings' %}" class="bg-indigo-600 text-white px-3 py-2 rounded hover:bg-green-700 text-sm">
+      
+      <span aria-hidden="true">💱</span>  <!-- 🪙 visual icon only (hidden from screen readers) -->
+  Change Currency
+    </a>
     <a href="{% url 'finance:transaction_create' %}" class="bg-indigo-600 text-white px-3 py-2 rounded hover:bg-indigo-700 text-sm">
       + Add transaction
     </a>
+  
   </div>
 
   <!-- KPI cards -->

@@ -13,7 +13,11 @@ import os
 
 # ✅ BASE_DIR points to the folder that contains manage.py
 BASE_DIR = Path(__file__).resolve().parent.parent
-
+try:
+    from dotenv import load_dotenv       # load .env in development
+    load_dotenv(BASE_DIR / ".env")       # read .env file next to manage.py
+except Exception:
+    pass  
 
 # ---------------------------
 # 🔐 SECURITY / DEBUG (DEV)
@@ -133,7 +137,7 @@ DATABASES = {
         "ENGINE": "django.db.backends.mysql",                     # ← MySQL backend
         "NAME": os.environ.get("DB_NAME", "trackerdb"),           # ← DB name
         "USER": os.environ.get("DB_USER", "root"),                # ← DB user
-        "PASSWORD": os.environ.get("DB_PASSWORD", ""),            # ← DB password
+        "PASSWORD": os.environ.get("DB_PASSWORD", "root"),            # ← DB password
         "HOST": os.environ.get("DB_HOST", "127.0.0.1"),           # ← DB host
         "PORT": os.environ.get("DB_PORT", "3306"),                # ← default port
         "OPTIONS": {
@@ -185,3 +189,37 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 
 # ✅ Use BigAutoField for primary keys (modern default)
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+
+
+
+
+
+
+
+# =========================
+# ✉️ Email (Forgot Password)
+# =========================
+# We read everything from environment variables so secrets never live in code.
+
+# ✅ Choose backend from env:
+#    - "django.core.mail.backends.console.EmailBackend" → prints emails to the console (great for dev)
+#    - "django.core.mail.backends.smtp.EmailBackend"    → sends real emails via SMTP (Gmail etc.)
+#    We allow a simple flag "smtp" for convenience.
+_email_backend_flag = os.environ.get("DJANGO_EMAIL_BACKEND", "").lower()  # ← get flag
+if _email_backend_flag in ("smtp", "django.core.mail.backends.smtp.emailbackend"):
+    # 🔌 Use real SMTP (Gmail in our case)
+    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"  # ← real emails
+    EMAIL_HOST = os.environ.get("EMAIL_HOST", "smtp.gmail.com")    # ← Gmail SMTP host
+    EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "587"))          # ← TLS port
+    EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "True") == "True"  # ← enable TLS
+    EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")        # ← your Gmail address
+    EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")# ← Gmail App Password
+
+# 📨 Who the email is from (shows up in inbox)
+DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER if _email_backend_flag == "smtp" else "webmaster@localhost")
+
+# ⏱️ Password-reset token lifetime (seconds) — optional
+# Django’s default is 3 days; we allow override via env for flexibility.
+PASSWORD_RESET_TIMEOUT = int(os.environ.get("PASSWORD_RESET_TIMEOUT_SECONDS", 60 * 60 * 24 * 3))  # ← 3 days by default

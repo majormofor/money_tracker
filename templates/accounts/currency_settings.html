@@ -1,0 +1,34 @@
+{% extends "base.html" %}                                   <!-- 🔁 reuse main layout -->
+{% block title %}Change currency • Mofor P&L{% endblock %}  <!-- 🧭 browser tab title -->
+
+{% block content %}
+  <!-- 🏷️ Page header -->
+  <div class="flex items-center justify-between mb-4">
+    <h1 class="text-xl font-semibold">Currency</h1>         <!-- 📌 page title -->
+    <a href="{% url 'finance:transaction_list' %}" class="text-sm bg-white border px-3 py-2 rounded hover:bg-gray-50">Back</a>
+  </div>
+
+  <!-- 📄 Settings card -->
+  <div class="max-w-md bg-white border rounded-xl p-6">
+    <form method="post" class="space-y-4">                   <!-- 📨 submit to same URL (POST) -->
+      {% csrf_token %}                                      <!-- 🔒 CSRF protection -->
+      {{ form.non_field_errors }}                           <!-- ⚠️ form-wide errors (rare) -->
+
+      <div>
+        {{ form.currency.label_tag }}                       <!-- 🏷️ label -->
+        {{ form.currency }}                                  <!-- 🔽 select box -->
+        {% for err in form.currency.errors %}               <!-- ❌ field errors -->
+          <p class="text-sm text-red-600 mt-1">{{ err }}</p>
+        {% endfor %}
+        {% if form.currency.help_text %}                    <!-- ℹ️ optional help text -->
+          <p class="text-xs text-gray-500 mt-1">{{ form.currency.help_text }}</p>
+        {% endif %}
+      </div>
+
+      <div class="flex items-center justify-end gap-2">     <!-- 🧭 actions -->
+        <a href="{% url 'finance:transaction_list' %}" class="px-3 py-2 rounded bg-gray-100 hover:bg-gray-200 text-sm">Cancel</a>
+        <button type="submit">Save</button>                 <!-- 💾 save changes -->
+      </div>
+    </form>
+  </div>
+{% endblock %}

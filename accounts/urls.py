@@ -52,4 +52,9 @@ urlpatterns = [
         ),
         name="password_reset_complete",
     ),
+        path(
+        "settings/currency/",                                # ← the page address
+        views.currency_settings,                             # ← the view we wrote above
+        name="currency_settings",                            # ← URL name used by {% url %} in templates
+    ),
 ]
