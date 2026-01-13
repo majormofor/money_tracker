@@ -45,7 +45,7 @@ A **Django-based personal finance tracker** that allows users to manage income a
 - Densified timelines (no gaps in charts)
 
 ![Dashboard Monthly](img/MonthlyDashboard.png)
-![Dashboard Weekly](weeklyDashboard.png)
+![Dashboard Weekly](img/weeklyDashboard.png)
 
 
 ### 📑 Reports
