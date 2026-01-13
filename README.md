@@ -44,6 +44,10 @@ A **Django-based personal finance tracker** that allows users to manage income a
   - Expense breakdown by category
 - Densified timelines (no gaps in charts)
 
+![Dashboard view](img/MonthlyDashboard.png)
+![Dashboard view](weeklyDashboard.png)
+
+
 ### 📑 Reports
 - Profit & Loss report for any selected date range
 - Income and Expense breakdown by category
