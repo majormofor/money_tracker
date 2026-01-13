@@ -62,28 +62,28 @@ A **Django-based personal finance tracker** that allows users to manage income a
 ---
 
 ## 🧱 Project Structure
+
+```text
 money_tracker/
 ├── manage.py
 ├── mo4_tracker/
-│ ├── settings.py
-│ ├── urls.py
-│ ├── wsgi.py
-│ └── asgi.py
+│   ├── settings.py
+│   ├── urls.py
+│   ├── wsgi.py
+│   └── asgi.py
 ├── finance/
-│ ├── models.py
-│ ├── views.py
-│ ├── forms.py
-│ └── templates/
+│   ├── models.py
+│   ├── views.py
+│   ├── forms.py
+│   └── templates/
 ├── accounts/
-│ ├── models.py
-│ ├── views.py
-│ ├── forms.py
-│ └── templates/
+│   ├── models.py
+│   ├── views.py
+│   ├── forms.py
+│   └── templates/
 ├── templates/
 ├── staticfiles/
 └── venv/
-
-
 
 ---
 
