@@ -5,6 +5,7 @@ A **Django-based personal finance tracker** that allows users to manage income a
 **Live deployment:** PythonAnywhere  
 **Database:** MySQL  
 
+![Homepage](img/Home.png)
 ---
 
 ## ✨ Features
