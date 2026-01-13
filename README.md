@@ -44,8 +44,8 @@ A **Django-based personal finance tracker** that allows users to manage income a
   - Expense breakdown by category
 - Densified timelines (no gaps in charts)
 
-![Dashboard view](img/MonthlyDashboard.png)
-![Dashboard view](weeklyDashboard.png)
+![Dashboard Monthly](img/MonthlyDashboard.png)
+![Dashboard Weekly](weeklyDashboard.png)
 
 
 ### 📑 Reports
