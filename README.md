@@ -84,7 +84,7 @@ money_tracker/
 ├── templates/
 ├── staticfiles/
 └── venv/
-
+```
 ---
 
 ## ⚙️ Tech Stack
